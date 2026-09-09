@@ -1,0 +1,6 @@
+{
+  "vercelUrl": "http://localhost:3000",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install"
+}
