@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { UpdateListingInput, PropertyType, PricePeriod, Listing } from '@/lib/types'
@@ -11,11 +11,11 @@ const PROPERTY_TYPES: PropertyType[] = ['self-contain', 'flat', 'duplex', 'bunga
 const PRICE_PERIODS: PricePeriod[] = ['monthly', 'yearly']
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }
 
 export default function EditListingPage({ params }: PageProps) {
-  const resolvedParams = use(params)
+  const { id } = params
   const [formData, setFormData] = useState<UpdateListingInput>({})
   const [existingPhotos, setExistingPhotos] = useState<string[]>([])
   const [existingVideos, setExistingVideos] = useState<string[]>([])
@@ -44,11 +44,11 @@ export default function EditListingPage({ params }: PageProps) {
       }
     }
     checkAuth()
-  }, [resolvedParams.id, router])
+  }, [id, router])
 
   const loadListing = async () => {
     try {
-      const res = await fetch(`/api/landlord/listings/${resolvedParams.id}`)
+      const res = await fetch(`/api/landlord/listings/${id}`)
       if (!res.ok) {
         if (res.status === 401) {
           router.push('/auth/login')
@@ -139,7 +139,7 @@ export default function EditListingPage({ params }: PageProps) {
     setError(null)
 
     try {
-      const res = await fetch(`/api/landlord/listings/${resolvedParams.id}`, {
+      const res = await fetch(`/api/landlord/listings/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -172,7 +172,7 @@ export default function EditListingPage({ params }: PageProps) {
     setDeleting(true)
     setError(null)
     try {
-      const res = await fetch(`/api/landlord/listings/${resolvedParams.id}`, {
+      const res = await fetch(`/api/landlord/listings/${id}`, {
         method: 'DELETE',
       })
 

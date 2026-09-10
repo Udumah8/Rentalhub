@@ -1,17 +1,17 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import { Listing, Profile } from '@/lib/types'
 import { getListing } from '@/lib/supabase'
 import Image from 'next/image'
 import Link from 'next/link'
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }
 
 export default function ListingDetailPage({ params }: PageProps) {
-  const resolvedParams = use(params)
+  const { id } = params
   const [listing, setListing] = useState<(Listing & { landlord: Profile }) | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -22,7 +22,7 @@ export default function ListingDetailPage({ params }: PageProps) {
       setLoading(true)
       setError(null)
       try {
-        const result = await getListing(resolvedParams.id)
+        const result = await getListing(id)
         if (result.error || !result.listing) {
           setError('Listing not found')
         } else {
@@ -35,7 +35,7 @@ export default function ListingDetailPage({ params }: PageProps) {
       }
     }
     load()
-  }, [resolvedParams.id])
+  }, [id])
 
   const formatPrice = (price: number, period: string) => {
     return new Intl.NumberFormat('en-NG', {
