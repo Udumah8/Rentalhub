@@ -35,19 +35,22 @@ export default function LoginPage() {
     }
 
     try {
-      // Add a timeout to prevent hanging
       const signInPromise = signIn(email, password)
       const timeoutPromise = new Promise<{ error: { message: string } }>((_, reject) =>
         setTimeout(() => reject(new Error('Sign in request timed out. Please check your connection.')), 15000)
       )
 
-      const { error: signInError } = await Promise.race([signInPromise, timeoutPromise])
+      const result = await Promise.race([signInPromise, timeoutPromise])
+      const { session, error: signInError } = result as { user: any; session: any; error: any }
 
       if (signInError) {
         setError(signInError.message || 'Invalid email or password. Please try again.')
         setLoading(false)
-      } else {
+      } else if (session) {
         router.push('/landlord/dashboard')
+      } else {
+        setError('Sign in failed. Please try again.')
+        setLoading(false)
       }
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred. Please try again.')

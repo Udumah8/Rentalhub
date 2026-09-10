@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { supabase, signUp } from '@/lib/supabase'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -50,13 +50,7 @@ export default function SignupPage() {
     }
 
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName, phone },
-        },
-      })
+      const { user, session, error: signUpError } = await signUp(email, password, fullName, phone)
 
       if (signUpError) {
         setError(signUpError.message)
@@ -64,8 +58,7 @@ export default function SignupPage() {
         return
       }
 
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
+      if (session && user) {
         await supabase.from('profiles').update({ full_name: fullName }).eq('id', user.id)
         router.push('/landlord/dashboard')
       } else {

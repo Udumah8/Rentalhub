@@ -197,12 +197,12 @@ export async function getAdminStats() {
   return { stats: data as any | null, error }
 }
 
-export async function signUp(email: string, password: string, phone?: string) {
+export async function signUp(email: string, password: string, fullName?: string, phone?: string) {
   const { data, error } = await getSupabaseClient().auth.signUp({
     email,
     password,
     options: {
-      data: { phone },
+      data: { full_name: fullName, phone },
     },
   })
   return { user: data.user, session: data.session, error }

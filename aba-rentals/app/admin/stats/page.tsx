@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { AdminStats } from '@/lib/types'
+import { getSupabaseClient } from '@/lib/supabase'
 
 export default function AdminStatsPage() {
   const [stats, setStats] = useState<AdminStats | null>(null)
@@ -12,11 +13,7 @@ export default function AdminStatsPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { createClient } = await import('@supabase/supabase-js')
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
+      const supabase = getSupabaseClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/auth/login')

@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { UpdateListingInput, PropertyType, PricePeriod, Listing } from '@/lib/types'
+import { getSupabaseClient } from '@/lib/supabase'
 import Image from 'next/image'
 
 const PROPERTY_TYPES: PropertyType[] = ['self-contain', 'flat', 'duplex', 'bungalow', 'office', 'shop', 'other']
@@ -26,11 +27,7 @@ export default function EditListingPage({ params }: PageProps) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { createClient } = await import('@supabase/supabase-js')
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
+      const supabase = getSupabaseClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/auth/login')

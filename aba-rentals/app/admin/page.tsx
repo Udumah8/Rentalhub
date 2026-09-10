@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Listing, Profile } from '@/lib/types'
+import { getSupabaseClient } from '@/lib/supabase'
 import Image from 'next/image'
 
 export default function AdminPage() {
@@ -16,11 +17,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { createClient } = await import('@supabase/supabase-js')
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
+      const supabase = getSupabaseClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/auth/login')
