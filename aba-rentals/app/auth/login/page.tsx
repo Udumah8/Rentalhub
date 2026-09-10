@@ -35,7 +35,13 @@ export default function LoginPage() {
     }
 
     try {
-      const { error: signInError } = await signIn(email, password)
+      // Add a timeout to prevent hanging
+      const signInPromise = signIn(email, password)
+      const timeoutPromise = new Promise<{ error: { message: string } }>((_, reject) =>
+        setTimeout(() => reject(new Error('Sign in request timed out. Please check your connection.')), 15000)
+      )
+
+      const { error: signInError } = await Promise.race([signInPromise, timeoutPromise])
 
       if (signInError) {
         setError(signInError.message || 'Invalid email or password. Please try again.')
