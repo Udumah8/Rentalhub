@@ -25,6 +25,7 @@ export interface Listing {
   bathrooms: number
   property_type: PropertyType
   photos: string[]
+  videos: string[]
   status: ListingStatus
   rejection_reason?: string
   contact_phone: string
@@ -44,6 +45,7 @@ export interface CreateListingInput {
   bathrooms: number
   property_type: PropertyType
   photos: string[]
+  videos: string[]
   contact_phone: string
   contact_whatsapp: string
 }

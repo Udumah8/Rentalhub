@@ -50,6 +50,13 @@ export default function ListingDetailPage({ params }: PageProps) {
   )
   const whatsappUrl = `https://wa.me/${listing?.contact_whatsapp?.replace(/[^0-9]/g, '')}?text=${whatsappMessage}`
 
+  const media = [
+    ...(listing?.photos || []).map(url => ({ type: 'image' as const, url })),
+    ...(listing?.videos || []).map(url => ({ type: 'video' as const, url })),
+  ]
+
+  const currentMedia = media[selectedPhotoIndex] || null
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -98,13 +105,17 @@ export default function ListingDetailPage({ params }: PageProps) {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="card overflow-hidden">
           <div className="relative h-64 sm:h-96 bg-gray-100">
-            <Image
-              src={listing.photos?.[selectedPhotoIndex] || '/placeholder.jpg'}
-              alt={listing.title}
-              fill
-              className="object-cover"
-              priority
-            />
+            {currentMedia?.type === 'video' ? (
+              <video src={currentMedia.url} controls className="w-full h-full" />
+            ) : (
+              <Image
+                src={currentMedia?.url || listing.photos?.[0] || '/placeholder.jpg'}
+                alt={listing.title}
+                fill
+                className="object-cover"
+                priority
+              />
+            )}
             {listing.landlord?.is_verified && (
               <span className="absolute top-4 right-4 badge badge-success text-sm">
                 Verified Landlord
@@ -112,9 +123,9 @@ export default function ListingDetailPage({ params }: PageProps) {
             )}
           </div>
 
-          {listing.photos && listing.photos.length > 1 && (
+          {media.length > 1 && (
             <div className="flex gap-2 p-4 overflow-x-auto">
-              {listing.photos.map((photo, idx) => (
+              {media.map((item, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedPhotoIndex(idx)}
@@ -122,7 +133,13 @@ export default function ListingDetailPage({ params }: PageProps) {
                     selectedPhotoIndex === idx ? 'border-blue-600' : 'border-transparent'
                   }`}
                 >
-                  <Image src={photo} alt="" fill className="object-cover" />
+                  {item.type === 'video' ? (
+                    <div className="w-full h-full bg-black flex items-center justify-center text-white text-xs">
+                      ▶ Video
+                    </div>
+                  ) : (
+                    <Image src={item.url} alt="" fill className="object-cover" />
+                  )}
                 </button>
               ))}
             </div>

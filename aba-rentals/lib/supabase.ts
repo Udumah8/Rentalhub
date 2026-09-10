@@ -25,7 +25,21 @@ export async function deleteListing(id: string, userId: string) { const { error 
 export async function getMyListings(userId: string) { const { data, error } = await getSupabaseClient().from('listings').select('*').eq('landlord_id', userId).order('created_at', { ascending: false }); return { listings: data as any[] | null, error } }
 export async function approveListing(id: string) { const { data, error } = await getSupabaseClient().from('listings').update({ status: 'approved', rejection_reason: null }).eq('id', id).select('*, landlord:profiles(*)').single(); return { listing: data as any, error } }
 export async function rejectListing(id: string, reason: string) { const { data, error } = await getSupabaseClient().from('listings').update({ status: 'rejected', rejection_reason: reason }).eq('id', id).select('*, landlord:profiles(*)').single(); return { listing: data as any, error } }
-export async function uploadPhoto(file: File, path: string) { const client = getSupabaseClient(); const filePath = `${path}/${crypto.randomUUID()}.${file.name.split('.').pop()}`; const { error } = await client.storage.from('listing-photos').upload(filePath, file); if (error) return { url: null, error }; return { url: client.storage.from('listing-photos').getPublicUrl(filePath).data.publicUrl, error: null } }
+export async function uploadMedia(file: File) {
+  const client = getSupabaseClient()
+  const isVideo = file.type.startsWith('video/')
+  const folder = isVideo ? 'videos' : 'images'
+  const ext = file.name.split('.').pop() || (isVideo ? 'mp4' : 'jpg')
+  const filePath = `${folder}/${crypto.randomUUID()}.${ext}`
+
+  const { error } = await client.storage.from('listing-photos').upload(filePath, file, {
+    cacheControl: '3600',
+    upsert: false,
+  })
+  if (error) return { url: null, error }
+
+  return { url: client.storage.from('listing-photos').getPublicUrl(filePath).data.publicUrl, error: null }
+}
 
 export async function signUp(email: string, password: string, fullName?: string, phone?: string) { const { data, error } = await getSupabaseClient().auth.signUp({ email, password, options: { emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? `${window.location.origin}/auth/callback`, data: { full_name: fullName?.trim(), phone: phone?.trim() } } }); return { user: data.user, session: data.session, error } }
 export async function signIn(email: string, password: string) { const { data, error } = await getSupabaseClient().auth.signInWithPassword({ email, password }); return { user: data.user, session: data.session, error } }

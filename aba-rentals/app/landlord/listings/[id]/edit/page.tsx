@@ -18,11 +18,13 @@ export default function EditListingPage({ params }: PageProps) {
   const resolvedParams = use(params)
   const [formData, setFormData] = useState<UpdateListingInput>({})
   const [existingPhotos, setExistingPhotos] = useState<string[]>([])
+  const [existingVideos, setExistingVideos] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -57,8 +59,11 @@ export default function EditListingPage({ params }: PageProps) {
       property_type: listing.property_type,
       contact_phone: listing.contact_phone,
       contact_whatsapp: listing.contact_whatsapp,
+      photos: listing.photos || [],
+      videos: listing.videos || [],
     })
     setExistingPhotos(listing.photos || [])
+    setExistingVideos(listing.videos || [])
     setLoading(false)
   }
 
@@ -70,23 +75,42 @@ export default function EditListingPage({ params }: PageProps) {
     }))
   }
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'photos' | 'videos') => {
     const files = e.target.files
     if (!files || files.length === 0) return
 
-    const uploadPromises = Array.from(files).map(async (file) => {
-      const { uploadPhoto } = await import('@/lib/supabase')
-      const result = await uploadPhoto(file, 'listings')
-      return result.url
-    })
+    setUploading(true)
+    setError(null)
 
-    const urls = await Promise.all(uploadPromises)
-    const validUrls = urls.filter((url): url is string => url !== null)
-    setExistingPhotos(prev => [...prev, ...validUrls])
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const { uploadMedia } = await import('@/lib/supabase')
+        const result = await uploadMedia(file)
+        return result.url
+      })
+
+      const urls = await Promise.all(uploadPromises)
+      const validUrls = urls.filter((url): url is string => url !== null)
+
+      if (type === 'photos') {
+        setExistingPhotos(prev => [...prev, ...validUrls])
+      } else {
+        setExistingVideos(prev => [...prev, ...validUrls])
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to upload media')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
   }
 
-  const removePhoto = (index: number) => {
-    setExistingPhotos(prev => prev.filter((_, i) => i !== index))
+  const removeMedia = (type: 'photos' | 'videos', index: number) => {
+    if (type === 'photos') {
+      setExistingPhotos(prev => prev.filter((_, i) => i !== index))
+    } else {
+      setExistingVideos(prev => prev.filter((_, i) => i !== index))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -97,7 +121,11 @@ export default function EditListingPage({ params }: PageProps) {
     const res = await fetch(`/api/landlord/listings/${resolvedParams.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({
+        ...formData,
+        photos: existingPhotos,
+        videos: existingVideos,
+      }),
     })
 
     if (!res.ok) {
@@ -325,8 +353,9 @@ export default function EditListingPage({ params }: PageProps) {
                 type="file"
                 accept="image/*"
                 multiple
-                onChange={handlePhotoUpload}
+                onChange={(e) => handleMediaUpload(e, 'photos')}
                 className="input"
+                disabled={uploading}
               />
               {existingPhotos.length > 0 && (
                 <div className="grid grid-cols-4 gap-3 mt-3">
@@ -335,7 +364,7 @@ export default function EditListingPage({ params }: PageProps) {
                       <Image src={photo} alt="" fill className="object-cover" />
                       <button
                         type="button"
-                        onClick={() => removePhoto(idx)}
+                        onClick={() => removeMedia('photos', idx)}
                         className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
                       >
                         ×
@@ -346,7 +375,35 @@ export default function EditListingPage({ params }: PageProps) {
               )}
             </div>
 
-            <button type="submit" className="btn-primary w-full" disabled={saving}>
+            <div>
+              <label className="label">Videos</label>
+              <input
+                type="file"
+                accept="video/*"
+                multiple
+                onChange={(e) => handleMediaUpload(e, 'videos')}
+                className="input"
+                disabled={uploading}
+              />
+              {existingVideos.length > 0 && (
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  {existingVideos.map((video, idx) => (
+                    <div key={idx} className="relative aspect-video rounded-lg overflow-hidden bg-black">
+                      <video src={video} controls className="w-full h-full" />
+                      <button
+                        type="button"
+                        onClick={() => removeMedia('videos', idx)}
+                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button type="submit" className="btn-primary w-full" disabled={saving || uploading}>
               {saving ? 'Saving...' : 'Update Listing'}
             </button>
           </form>

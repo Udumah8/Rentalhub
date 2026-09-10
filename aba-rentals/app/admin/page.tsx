@@ -131,6 +131,9 @@ export default function AdminPage() {
                       fill
                       className="object-cover"
                     />
+                    {listing.videos && listing.videos.length > 0 && (
+                      <span className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded">▶ Video</span>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-4">

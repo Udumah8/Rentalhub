@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS public.listings (
   bathrooms INTEGER NOT NULL,
   property_type TEXT NOT NULL,
   photos TEXT[] DEFAULT '{}',
+  videos TEXT[] DEFAULT '{}',
   status TEXT DEFAULT 'pending' NOT NULL CHECK (status IN ('pending', 'approved', 'rejected')),
   rejection_reason TEXT,
   contact_phone TEXT NOT NULL,

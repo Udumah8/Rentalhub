@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CreateListingInput, PropertyType, PricePeriod } from '@/lib/types'
@@ -21,12 +21,14 @@ export default function NewListingPage() {
     bathrooms: 1,
     property_type: 'flat',
     photos: [],
+    videos: [],
     contact_phone: '',
     contact_whatsapp: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -48,29 +50,39 @@ export default function NewListingPage() {
     }))
   }
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'photos' | 'videos') => {
     const files = e.target.files
     if (!files || files.length === 0) return
 
     setError(null)
-    const uploadPromises = Array.from(files).map(async (file) => {
-      const { uploadPhoto } = await import('@/lib/supabase')
-      const result = await uploadPhoto(file, 'listings')
-      return result.url
-    })
+    setUploading(true)
 
-    const urls = await Promise.all(uploadPromises)
-    const validUrls = urls.filter((url): url is string => url !== null)
-    setFormData(prev => ({
-      ...prev,
-      photos: [...prev.photos, ...validUrls],
-    }))
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const { uploadMedia } = await import('@/lib/supabase')
+        const result = await uploadMedia(file)
+        return result.url
+      })
+
+      const urls = await Promise.all(uploadPromises)
+      const validUrls = urls.filter((url): url is string => url !== null)
+
+      setFormData(prev => ({
+        ...prev,
+        [type]: [...prev[type], ...validUrls],
+      }))
+    } catch (err: any) {
+      setError(err.message || 'Failed to upload media')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
   }
 
-  const removePhoto = (index: number) => {
+  const removeMedia = (type: 'photos' | 'videos', index: number) => {
     setFormData(prev => ({
       ...prev,
-      photos: prev.photos.filter((_, i) => i !== index),
+      [type]: prev[type].filter((_, i) => i !== index),
     }))
   }
 
@@ -296,8 +308,9 @@ export default function NewListingPage() {
                 type="file"
                 accept="image/*"
                 multiple
-                onChange={handlePhotoUpload}
+                onChange={(e) => handleMediaUpload(e, 'photos')}
                 className="input"
+                disabled={uploading}
               />
               {formData.photos.length > 0 && (
                 <div className="grid grid-cols-4 gap-3 mt-3">
@@ -306,7 +319,7 @@ export default function NewListingPage() {
                       <Image src={photo} alt="" fill className="object-cover" />
                       <button
                         type="button"
-                        onClick={() => removePhoto(idx)}
+                        onClick={() => removeMedia('photos', idx)}
                         className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
                       >
                         ×
@@ -317,7 +330,35 @@ export default function NewListingPage() {
               )}
             </div>
 
-            <button type="submit" className="btn-primary w-full" disabled={loading}>
+            <div>
+              <label className="label">Videos (optional)</label>
+              <input
+                type="file"
+                accept="video/*"
+                multiple
+                onChange={(e) => handleMediaUpload(e, 'videos')}
+                className="input"
+                disabled={uploading}
+              />
+              {formData.videos.length > 0 && (
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  {formData.videos.map((video, idx) => (
+                    <div key={idx} className="relative aspect-video rounded-lg overflow-hidden bg-black">
+                      <video src={video} controls className="w-full h-full" />
+                      <button
+                        type="button"
+                        onClick={() => removeMedia('videos', idx)}
+                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button type="submit" className="btn-primary w-full" disabled={loading || uploading}>
               {loading ? 'Creating...' : 'Create Listing'}
             </button>
           </form>

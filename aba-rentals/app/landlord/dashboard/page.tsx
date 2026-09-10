@@ -122,6 +122,9 @@ export default function LandlordDashboard() {
                     fill
                     className="object-cover"
                   />
+                  {listing.videos && listing.videos.length > 0 && (
+                    <span className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">▶ Video</span>
+                  )}
                   <span className={`absolute top-2 right-2 badge ${getStatusBadge(listing.status)}`}>
                     {listing.status}
                   </span>
