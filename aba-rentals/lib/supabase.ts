@@ -23,8 +23,18 @@ export async function createListing(input: any, userId: string) { const { data, 
 export async function updateListing(id: string, input: any, userId: string) { const { data, error } = await getSupabaseClient().from('listings').update(input).eq('id', id).eq('landlord_id', userId).select('*, landlord:profiles(*)').single(); return { listing: data as any, error } }
 export async function deleteListing(id: string, userId: string) { const { error } = await getSupabaseClient().from('listings').delete().eq('id', id).eq('landlord_id', userId); return { error } }
 export async function getMyListings(userId: string) { const { data, error } = await getSupabaseClient().from('listings').select('*').eq('landlord_id', userId).order('created_at', { ascending: false }); return { listings: data as any[] | null, error } }
-export async function approveListing(id: string) { const { data, error } = await getSupabaseClient().from('listings').update({ status: 'approved', rejection_reason: null }).eq('id', id).select('*, landlord:profiles(*)').single(); return { listing: data as any, error } }
-export async function rejectListing(id: string, reason: string) { const { data, error } = await getSupabaseClient().from('listings').update({ status: 'rejected', rejection_reason: reason }).eq('id', id).select('*, landlord:profiles(*)').single(); return { listing: data as any, error } }
+export async function approveListing(id: string) { 
+  const { data, error } = await getSupabaseClient().from('listings').update({ status: 'approved', rejection_reason: null }).eq('id', id).select('*, landlord:profiles(*)').maybeSingle(); 
+  if (error) return { listing: null, error }
+  if (!data) return { listing: null, error: { message: 'Listing not found or permission denied' } }
+  return { listing: data as any, error }
+}
+export async function rejectListing(id: string, reason: string) { 
+  const { data, error } = await getSupabaseClient().from('listings').update({ status: 'rejected', rejection_reason: reason }).eq('id', id).select('*, landlord:profiles(*)').maybeSingle(); 
+  if (error) return { listing: null, error }
+  if (!data) return { listing: null, error: { message: 'Listing not found or permission denied' } }
+  return { listing: data as any, error }
+}
 export async function uploadMedia(file: File) {
   const client = getSupabaseClient()
   const isVideo = file.type.startsWith('video/')
