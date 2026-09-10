@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { UpdateListingInput, PropertyType, PricePeriod, Listing } from '@/lib/types'
-import { getSupabaseClient, uploadMedia } from '@/lib/supabase'
+import { getSupabaseClient, uploadMedia, getListing } from '@/lib/supabase'
 import Image from 'next/image'
 
 const PROPERTY_TYPES: PropertyType[] = ['self-contain', 'flat', 'duplex', 'bungalow', 'office', 'shop', 'other']
@@ -48,20 +48,24 @@ export default function EditListingPage({ params }: PageProps) {
 
   const loadListing = async () => {
     try {
-      const res = await fetch(`/api/landlord/listings/${id}`)
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push('/auth/login')
-        } else if (res.status === 403) {
-          setError('You do not have permission to edit this listing')
-        } else {
-          setError('Failed to load listing')
-        }
+      const result = await getListing(id)
+      if (result.error || !result.listing) {
+        setError('Listing not found')
         setLoading(false)
         return
       }
-      const data = await res.json()
-      const listing = data.listing
+      const listing = result.listing
+      // Check ownership
+      const supabase = getSupabaseClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user || listing.landlord_id !== user.id) {
+        const adminRes = await fetch(`/api/admin/listings/${id}`)
+        if (!adminRes.ok) {
+          setError('You do not have permission to edit this listing')
+          setLoading(false)
+          return
+        }
+      }
       setFormData({
         title: listing.title,
         description: listing.description,
