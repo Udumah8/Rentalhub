@@ -10,6 +10,7 @@ import Image from 'next/image'
 export default function AdminPage() {
   const [listings, setListings] = useState<(Listing & { landlord: Profile })[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [processing, setProcessing] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState<{ [key: string]: string }>({})
   const [showReject, setShowReject] = useState<string | null>(null)
@@ -17,13 +18,19 @@ export default function AdminPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = getSupabaseClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
+      setError(null)
+      try {
+        const supabase = getSupabaseClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.push('/auth/login')
+          return
+        }
+        await loadListings()
+      } catch (err: any) {
+        setError(err.message || 'Failed to load admin panel')
+        setLoading(false)
       }
-      loadListings()
     }
     checkAuth()
   }, [router])
@@ -33,46 +40,65 @@ export default function AdminPage() {
     if (res.ok) {
       const data = await res.json()
       setListings(data.listings || [])
+    } else if (res.status === 403) {
+      setError('You do not have admin access')
+    } else if (res.status === 401) {
+      router.push('/auth/login')
+      return
+    } else {
+      setError('Failed to load listings')
     }
     setLoading(false)
   }
 
   const handleApprove = async (id: string) => {
     setProcessing(id)
-    const res = await fetch(`/api/admin/listings/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'approved' }),
-    })
-    if (res.ok) {
-      setListings(prev => prev.filter(l => l.id !== id))
-    } else {
-      const data = await res.json()
-      alert('Failed to approve: ' + (data.error || 'Unknown error'))
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/listings/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'approved' }),
+      })
+      if (res.ok) {
+        setListings(prev => prev.filter(l => l.id !== id))
+      } else {
+        const data = await res.json()
+        setError(data.error || 'Failed to approve listing')
+      }
+    } catch (err: any) {
+      setError(err.message || 'Network error while approving')
+    } finally {
+      setProcessing(null)
     }
-    setProcessing(null)
   }
 
   const handleReject = async (id: string) => {
     const reason = rejectReason[id]
     if (!reason?.trim()) {
-      alert('Please provide a reason for rejection')
+      setError('Please provide a reason for rejection')
       return
     }
     setProcessing(id)
-    const res = await fetch(`/api/admin/listings/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'rejected', rejection_reason: reason }),
-    })
-    if (res.ok) {
-      setListings(prev => prev.filter(l => l.id !== id))
-      setShowReject(null)
-    } else {
-      const data = await res.json()
-      alert('Failed to reject: ' + (data.error || 'Unknown error'))
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/listings/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'rejected', rejection_reason: reason }),
+      })
+      if (res.ok) {
+        setListings(prev => prev.filter(l => l.id !== id))
+        setShowReject(null)
+      } else {
+        const data = await res.json()
+        setError(data.error || 'Failed to reject listing')
+      }
+    } catch (err: any) {
+      setError(err.message || 'Network error while rejecting')
+    } finally {
+      setProcessing(null)
     }
-    setProcessing(null)
   }
 
   return (
@@ -97,6 +123,12 @@ export default function AdminPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Pending Listings</h1>
         <p className="text-gray-500 mb-6">Review and approve or reject listings awaiting approval</p>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
+
         {loading ? (
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -114,7 +146,7 @@ export default function AdminPage() {
         ) : listings.length === 0 ? (
           <div className="card p-8 text-center">
             <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9.9 0 11-18 0 9.9 0 0118 0z" />
             </svg>
             <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
             <p className="text-gray-500">No pending listings to review</p>

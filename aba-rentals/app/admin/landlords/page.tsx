@@ -11,36 +11,50 @@ export default function AdminLandlordsPage() {
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [listings, setListings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [updating, setUpdating] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = getSupabaseClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
+      setError(null)
+      try {
+        const supabase = getSupabaseClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.push('/auth/login')
+          return
+        }
+        await loadData()
+      } catch (err: any) {
+        setError(err.message || 'Failed to load landlords')
+        setLoading(false)
       }
-      loadData()
     }
     checkAuth()
   }, [router])
 
   const loadData = async () => {
-    const [profilesRes, listingsRes] = await Promise.all([
-      fetch('/api/admin/profiles'),
-      fetch('/api/admin/all-listings'),
-    ])
-    if (profilesRes.ok) {
-      const data = await profilesRes.json()
-      setProfiles(data.profiles || [])
+    try {
+      const [profilesRes, listingsRes] = await Promise.all([
+        fetch('/api/admin/profiles'),
+        fetch('/api/admin/all-listings'),
+      ])
+      if (profilesRes.ok) {
+        const data = await profilesRes.json()
+        setProfiles(data.profiles || [])
+      } else if (profilesRes.status === 403) {
+        setError('You do not have admin access')
+      }
+      if (listingsRes.ok) {
+        const data = await listingsRes.json()
+        setListings(data.listings || [])
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to load data')
+    } finally {
+      setLoading(false)
     }
-    if (listingsRes.ok) {
-      const data = await listingsRes.json()
-      setListings(data.listings || [])
-    }
-    setLoading(false)
   }
 
   const handleToggleVerification = async (userId: string, currentStatus: boolean) => {
@@ -84,6 +98,12 @@ export default function AdminLandlordsPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">All Landlords</h1>
         <p className="text-gray-500 mb-6">{profiles.length} registered landlords</p>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
 
         {loading ? (
           <div className="space-y-4">

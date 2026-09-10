@@ -11,23 +11,30 @@ export default function LandlordDashboard() {
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = getSupabaseClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
+      setError(null)
+      try {
+        const supabase = getSupabaseClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.push('/auth/login')
+          return
+        }
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+        setProfile((profileData as Profile) || null)
+        await loadListings(user.id)
+      } catch (err: any) {
+        setError(err.message || 'Failed to load dashboard')
+        setLoading(false)
       }
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-      setProfile(profileData as Profile)
-      loadListings(user.id)
     }
     checkAuth()
   }, [router])
@@ -35,7 +42,7 @@ export default function LandlordDashboard() {
   const loadListings = async (userId: string) => {
     const result = await getMyListings(userId)
     if (result.error) {
-      console.error('Failed to load listings:', result.error)
+      setError(result.error.message || 'Failed to load listings')
     } else {
       setListings(result.listings || [])
     }
@@ -91,6 +98,12 @@ export default function LandlordDashboard() {
             + New Listing
           </Link>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

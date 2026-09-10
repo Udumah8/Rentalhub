@@ -29,42 +29,60 @@ export default function EditListingPage({ params }: PageProps) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = getSupabaseClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
+      setError(null)
+      try {
+        const supabase = getSupabaseClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.push('/auth/login')
+          return
+        }
+        await loadListing()
+      } catch (err: any) {
+        setError(err.message || 'Failed to load listing')
+        setLoading(false)
       }
-      loadListing()
     }
     checkAuth()
   }, [resolvedParams.id, router])
 
   const loadListing = async () => {
-    const res = await fetch(`/api/landlord/listings/${resolvedParams.id}`)
-    if (!res.ok) {
-      router.push('/landlord/dashboard')
-      return
+    try {
+      const res = await fetch(`/api/landlord/listings/${resolvedParams.id}`)
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push('/auth/login')
+        } else if (res.status === 403) {
+          setError('You do not have permission to edit this listing')
+        } else {
+          setError('Failed to load listing')
+        }
+        setLoading(false)
+        return
+      }
+      const data = await res.json()
+      const listing = data.listing
+      setFormData({
+        title: listing.title,
+        description: listing.description,
+        price: listing.price,
+        price_period: listing.price_period,
+        location: listing.location,
+        bedrooms: listing.bedrooms,
+        bathrooms: listing.bathrooms,
+        property_type: listing.property_type,
+        contact_phone: listing.contact_phone,
+        contact_whatsapp: listing.contact_whatsapp,
+        photos: listing.photos || [],
+        videos: listing.videos || [],
+      })
+      setExistingPhotos(listing.photos || [])
+      setExistingVideos(listing.videos || [])
+    } catch (err: any) {
+      setError(err.message || 'Failed to load listing')
+    } finally {
+      setLoading(false)
     }
-    const data = await res.json()
-    const listing = data.listing
-    setFormData({
-      title: listing.title,
-      description: listing.description,
-      price: listing.price,
-      price_period: listing.price_period,
-      location: listing.location,
-      bedrooms: listing.bedrooms,
-      bathrooms: listing.bathrooms,
-      property_type: listing.property_type,
-      contact_phone: listing.contact_phone,
-      contact_whatsapp: listing.contact_whatsapp,
-      photos: listing.photos || [],
-      videos: listing.videos || [],
-    })
-    setExistingPhotos(listing.photos || [])
-    setExistingVideos(listing.videos || [])
-    setLoading(false)
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -120,25 +138,30 @@ export default function EditListingPage({ params }: PageProps) {
     setSaving(true)
     setError(null)
 
-    const res = await fetch(`/api/landlord/listings/${resolvedParams.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...formData,
-        photos: existingPhotos,
-        videos: existingVideos,
-      }),
-    })
+    try {
+      const res = await fetch(`/api/landlord/listings/${resolvedParams.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          photos: existingPhotos,
+          videos: existingVideos,
+        }),
+      })
 
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error || 'Failed to update listing')
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error || 'Failed to update listing')
+        setSaving(false)
+      } else {
+        setSuccess(true)
+        setTimeout(() => {
+          router.push('/landlord/dashboard')
+        }, 1000)
+      }
+    } catch (err: any) {
+      setError(err.message || 'Network error while updating listing')
       setSaving(false)
-    } else {
-      setSuccess(true)
-      setTimeout(() => {
-        router.push('/landlord/dashboard')
-      }, 1000)
     }
   }
 
@@ -147,16 +170,22 @@ export default function EditListingPage({ params }: PageProps) {
       return
     }
     setDeleting(true)
-    const res = await fetch(`/api/landlord/listings/${resolvedParams.id}`, {
-      method: 'DELETE',
-    })
+    setError(null)
+    try {
+      const res = await fetch(`/api/landlord/listings/${resolvedParams.id}`, {
+        method: 'DELETE',
+      })
 
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error || 'Failed to delete listing')
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error || 'Failed to delete listing')
+        setDeleting(false)
+      } else {
+        router.push('/landlord/dashboard')
+      }
+    } catch (err: any) {
+      setError(err.message || 'Network error while deleting listing')
       setDeleting(false)
-    } else {
-      router.push('/landlord/dashboard')
     }
   }
 

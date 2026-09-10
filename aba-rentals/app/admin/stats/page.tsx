@@ -9,28 +9,44 @@ import { getSupabaseClient } from '@/lib/supabase'
 export default function AdminStatsPage() {
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = getSupabaseClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
+      setError(null)
+      try {
+        const supabase = getSupabaseClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.push('/auth/login')
+          return
+        }
+        await loadStats()
+      } catch (err: any) {
+        setError(err.message || 'Failed to load statistics')
+        setLoading(false)
       }
-      loadStats()
     }
     checkAuth()
   }, [router])
 
   const loadStats = async () => {
-    const res = await fetch('/api/admin/stats')
-    if (res.ok) {
-      const data = await res.json()
-      setStats(data.stats)
+    try {
+      const res = await fetch('/api/admin/stats')
+      if (res.ok) {
+        const data = await res.json()
+        setStats(data.stats)
+      } else if (res.status === 403) {
+        setError('You do not have admin access')
+      } else {
+        setError('Failed to load statistics')
+      }
+    } catch (err: any) {
+      setError(err.message || 'Network error while loading statistics')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const StatCard = ({ title, value, color }: { title: string; value: number | string; color: string }) => (
@@ -60,6 +76,12 @@ export default function AdminStatsPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard Statistics</h1>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
