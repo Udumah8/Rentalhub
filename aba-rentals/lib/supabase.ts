@@ -29,8 +29,11 @@ export async function uploadMedia(file: File) {
   const client = getSupabaseClient()
   const isVideo = file.type.startsWith('video/')
   const folder = isVideo ? 'videos' : 'images'
-  const ext = file.name.split('.').pop() || (isVideo ? 'mp4' : 'jpg')
-  const filePath = `${folder}/${crypto.randomUUID()}.${ext}`
+
+  const fileName = file.name.replace(/\s+/g, '-')
+  const ext = fileName.includes('.') ? fileName.split('.').pop() : (isVideo ? 'mp4' : 'jpg')
+  const baseName = fileName.includes('.') ? fileName.slice(0, fileName.lastIndexOf('.')) : fileName
+  const filePath = `${folder}/${baseName}-${Date.now()}.${ext}`
 
   const { error } = await client.storage.from('listing-photos').upload(filePath, file, {
     cacheControl: '3600',
@@ -41,6 +44,19 @@ export async function uploadMedia(file: File) {
   return { url: client.storage.from('listing-photos').getPublicUrl(filePath).data.publicUrl, error: null }
 }
 
-export async function signUp(email: string, password: string, fullName?: string, phone?: string) { const { data, error } = await getSupabaseClient().auth.signUp({ email, password, options: { emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? `${window.location.origin}/auth/callback`, data: { full_name: fullName?.trim(), phone: phone?.trim() } } }); return { user: data.user, session: data.session, error } }
+export async function signUp(email: string, password: string, fullName?: string, phone?: string) { 
+  const redirectTo = typeof window !== 'undefined' 
+    ? (process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? `${window.location.origin}/auth/callback`) 
+    : undefined
+  const { data, error } = await getSupabaseClient().auth.signUp({ 
+    email, 
+    password, 
+    options: { 
+      emailRedirectTo: redirectTo, 
+      data: { full_name: fullName?.trim(), phone: phone?.trim() } 
+    } 
+  }); 
+  return { user: data.user, session: data.session, error } 
+}
 export async function signIn(email: string, password: string) { const { data, error } = await getSupabaseClient().auth.signInWithPassword({ email, password }); return { user: data.user, session: data.session, error } }
 export async function signOut() { const { error } = await getSupabaseClient().auth.signOut(); return { error } }

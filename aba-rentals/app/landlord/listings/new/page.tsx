@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CreateListingInput, PropertyType, PricePeriod } from '@/lib/types'
-import { createListing, signOut, getSupabaseClient } from '@/lib/supabase'
+import { createListing, signOut, getSupabaseClient, uploadMedia } from '@/lib/supabase'
 import Image from 'next/image'
 
 const PROPERTY_TYPES: PropertyType[] = ['self-contain', 'flat', 'duplex', 'bungalow', 'office', 'shop', 'other']
@@ -59,8 +59,10 @@ export default function NewListingPage() {
 
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
-        const { uploadMedia } = await import('@/lib/supabase')
         const result = await uploadMedia(file)
+        if (result.error) {
+          throw new Error(result.error.message || 'Upload failed')
+        }
         return result.url
       })
 
