@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerUser, getServerListing, isAdmin } from '@/lib/supabase-server'
-import { approveListing, rejectListing } from '@/lib/supabase'
+import { getServerUser, isAdmin, approveListingServer, rejectListingServer } from '@/lib/supabase-server'
 
 export async function PATCH(
   request: Request,
@@ -22,7 +21,7 @@ export async function PATCH(
     const { status, rejection_reason } = body
 
     if (status === 'approved') {
-      const { listing, error } = await approveListing(resolvedParams.id)
+      const { listing, error } = await approveListingServer(resolvedParams.id)
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })
       }
@@ -33,7 +32,7 @@ export async function PATCH(
       if (!rejection_reason?.trim()) {
         return NextResponse.json({ error: 'Rejection reason is required' }, { status: 400 })
       }
-      const { listing, error } = await rejectListing(resolvedParams.id, rejection_reason)
+      const { listing, error } = await rejectListingServer(resolvedParams.id, rejection_reason)
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })
       }

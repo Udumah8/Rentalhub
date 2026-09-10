@@ -128,3 +128,29 @@ export async function updateProfileVerification(userId: string, isVerified: bool
     .single()
   return { profile: data as any | null, error }
 }
+
+export async function approveListingServer(id: string) {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from('listings')
+    .update({ status: 'approved', rejection_reason: null })
+    .eq('id', id)
+    .select('*, landlord:profiles(*)')
+    .maybeSingle()
+  if (error) return { listing: null, error }
+  if (!data) return { listing: null, error: { message: 'Listing not found' } }
+  return { listing: data as any, error: null }
+}
+
+export async function rejectListingServer(id: string, reason: string) {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from('listings')
+    .update({ status: 'rejected', rejection_reason: reason })
+    .eq('id', id)
+    .select('*, landlord:profiles(*)')
+    .maybeSingle()
+  if (error) return { listing: null, error }
+  if (!data) return { listing: null, error: { message: 'Listing not found' } }
+  return { listing: data as any, error: null }
+}
