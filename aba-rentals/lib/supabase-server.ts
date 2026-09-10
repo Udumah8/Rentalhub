@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseServiceRoleKey = process.env.SUPABASE_SECRET_KEY!
 
 function createAdminClient(): SupabaseClient {
   return createClient(supabaseUrl, supabaseServiceRoleKey, {
@@ -13,13 +13,11 @@ function createAdminClient(): SupabaseClient {
 }
 
 export async function getServerUser() {
-  const cookieStore = await import('next/headers').then(m => m.cookies())
-  const authToken = cookieStore.get('sb-access-token')?.value
-
-  if (!authToken) return null
-
-  const supabase = createAdminClient()
-  const { data: { user } } = await supabase.auth.getUser(authToken)
+  const { cookies } = await import('next/headers')
+  const cookieStore = await cookies()
+  const { createServerClient } = await import('@supabase/ssr')
+  const supabase = createServerClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { cookies: { getAll: () => cookieStore.getAll(), setAll: () => undefined } })
+  const { data: { user } } = await supabase.auth.getUser()
   return user
 }
 
