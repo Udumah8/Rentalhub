@@ -5,6 +5,15 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase, signUp } from '@/lib/supabase'
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (event) => {
+    console.error('[global] window error', event.message, event.error)
+  })
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('[global] unhandledrejection', event.reason)
+  })
+}
+
 export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -30,6 +39,7 @@ export default function SignupPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    console.log('[signup] submit start', { email })
 
     if (!email || !password) {
       setError('Email and password are required')
@@ -50,7 +60,9 @@ export default function SignupPage() {
     }
 
     try {
+      console.log('[signup] calling signUp')
       const { user, session, error: signUpError } = await signUp(email, password, fullName, phone)
+      console.log('[signup] signUp result', { hasUser: !!user, hasSession: !!session, signUpError: signUpError?.message })
 
       if (signUpError) {
         setError(signUpError.message)
@@ -59,13 +71,17 @@ export default function SignupPage() {
       }
 
       if (session && user) {
+        console.log('[signup] session exists, saving profile and redirecting to dashboard')
         await supabase.from('profiles').update({ full_name: fullName }).eq('id', user.id)
+        console.log('[signup] profile saved, pushing to dashboard')
         router.push('/landlord/dashboard')
       } else {
+        console.log('[signup] no session, asking user to confirm email')
         setError('Please check your email to confirm your account, then sign in.')
         setLoading(false)
       }
     } catch (err: any) {
+      console.error('[signup] unexpected error', err)
       setError(err.message || 'An unexpected error occurred. Please try again.')
       setLoading(false)
     }

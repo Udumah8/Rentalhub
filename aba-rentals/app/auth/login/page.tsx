@@ -5,6 +5,15 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase, signIn } from '@/lib/supabase'
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (event) => {
+    console.error('[global] window error', event.message, event.error)
+  })
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('[global] unhandledrejection', event.reason)
+  })
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -27,6 +36,7 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    console.log('[login] submit start', { email })
 
     if (!email || !password) {
       setError('Email and password are required')
@@ -35,24 +45,33 @@ export default function LoginPage() {
     }
 
     try {
+      console.log('[login] calling signIn')
       const signInPromise = signIn(email, password)
       const timeoutPromise = new Promise<{ error: { message: string } }>((_, reject) =>
-        setTimeout(() => reject(new Error('Sign in request timed out. Please check your connection.')), 15000)
+        setTimeout(() => {
+          console.log('[login] signIn timeout')
+          reject(new Error('Sign in request timed out. Please check your connection.'))
+        }, 15000)
       )
 
       const result = await Promise.race([signInPromise, timeoutPromise])
+      console.log('[login] signIn result', result)
       const { session, error: signInError } = result as { user: any; session: any; error: any }
 
       if (signInError) {
+        console.log('[login] signIn error', signInError.message)
         setError(signInError.message || 'Invalid email or password. Please try again.')
         setLoading(false)
       } else if (session) {
+        console.log('[login] session exists, pushing to dashboard')
         router.push('/landlord/dashboard')
       } else {
+        console.log('[login] no session returned')
         setError('Sign in failed. Please try again.')
         setLoading(false)
       }
     } catch (err: any) {
+      console.error('[login] unexpected error', err)
       setError(err.message || 'An unexpected error occurred. Please try again.')
       setLoading(false)
     }
