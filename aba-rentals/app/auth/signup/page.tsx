@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { signUp } from '@/lib/supabase'
-import Image from 'next/image'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -53,6 +52,18 @@ export default function SignupPage() {
     if (error) {
       setError(error.message || 'Failed to create account')
       setLoading(false)
+      return
+    }
+
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase.from('profiles').update({ full_name: fullName }).eq('id', user.id)
+      router.push('/landlord/dashboard')
     } else {
       router.push('/auth/login?message=Check your email to confirm your account')
     }
