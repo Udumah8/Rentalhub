@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { signIn } from '@/lib/supabase'
+import { supabase, signIn } from '@/lib/supabase'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -15,11 +15,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { createClient } = await import('@supabase/supabase-js')
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         router.push('/landlord/dashboard')
@@ -39,13 +34,18 @@ export default function LoginPage() {
       return
     }
 
-    const { error } = await signIn(email, password)
+    try {
+      const { error: signInError } = await signIn(email, password)
 
-    if (error) {
-      setError(error.message || 'Failed to sign in. Please check your credentials.')
+      if (signInError) {
+        setError(signInError.message || 'Invalid email or password. Please try again.')
+        setLoading(false)
+      } else {
+        router.push('/landlord/dashboard')
+      }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred. Please try again.')
       setLoading(false)
-    } else {
-      router.push('/landlord/dashboard')
     }
   }
 

@@ -2,7 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 let client: SupabaseClient | null = null
 
-function getClient(): SupabaseClient {
+export function getSupabaseClient(): SupabaseClient {
   if (client) return client
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -16,13 +16,48 @@ function getClient(): SupabaseClient {
   return client
 }
 
+export const supabase = {
+  auth: {
+    getUser: async () => {
+      const c = getSupabaseClient()
+      return c.auth.getUser()
+    },
+    signInWithPassword: async (creds: any) => {
+      const c = getSupabaseClient()
+      return c.auth.signInWithPassword(creds)
+    },
+    signUp: async (creds: any) => {
+      const c = getSupabaseClient()
+      return c.auth.signUp(creds)
+    },
+    signOut: async () => {
+      const c = getSupabaseClient()
+      return c.auth.signOut()
+    },
+  },
+  from: <T = any>(table: string) => {
+    const c = getSupabaseClient()
+    return c.from(table) as any
+  },
+  storage: {
+    from: (bucket: string) => {
+      const c = getSupabaseClient()
+      return c.storage.from(bucket)
+    },
+  },
+  rpc: async <T = any>(fn: string, args?: any) => {
+    const c = getSupabaseClient()
+    return c.rpc(fn, args) as any
+  },
+}
+
 export async function getCurrentUser() {
-  const { data: { user } } = await getClient().auth.getUser()
+  const { data: { user } } = await getSupabaseClient().auth.getUser()
   return user
 }
 
 export async function getProfile(userId: string) {
-  const { data, error } = await getClient()
+  const { data, error } = await getSupabaseClient()
     .from('profiles')
     .select('*')
     .eq('id', userId)
@@ -31,7 +66,7 @@ export async function getProfile(userId: string) {
 }
 
 export async function getListings(filters: any = {}, page = 1, limit = 20) {
-  let query = getClient()
+  let query = getSupabaseClient()
     .from('listings')
     .select('*, landlord:profiles(*)', { count: 'exact' })
     .eq('status', 'approved')
@@ -54,7 +89,7 @@ export async function getListings(filters: any = {}, page = 1, limit = 20) {
 }
 
 export async function getListing(id: string) {
-  const { data, error } = await getClient()
+  const { data, error } = await getSupabaseClient()
     .from('listings')
     .select('*, landlord:profiles(*)')
     .eq('id', id)
@@ -63,7 +98,7 @@ export async function getListing(id: string) {
 }
 
 export async function createListing(input: any, userId: string) {
-  const { data, error } = await getClient()
+  const { data, error } = await getSupabaseClient()
     .from('listings')
     .insert({
       ...input,
@@ -75,7 +110,7 @@ export async function createListing(input: any, userId: string) {
 }
 
 export async function updateListing(id: string, input: any, userId: string) {
-  const { data, error } = await getClient()
+  const { data, error } = await getSupabaseClient()
     .from('listings')
     .update(input)
     .eq('id', id)
@@ -86,7 +121,7 @@ export async function updateListing(id: string, input: any, userId: string) {
 }
 
 export async function deleteListing(id: string, userId: string) {
-  const { error } = await getClient()
+  const { error } = await getSupabaseClient()
     .from('listings')
     .delete()
     .eq('id', id)
@@ -95,7 +130,7 @@ export async function deleteListing(id: string, userId: string) {
 }
 
 export async function getMyListings(userId: string) {
-  const { data, error } = await getClient()
+  const { data, error } = await getSupabaseClient()
     .from('listings')
     .select('*')
     .eq('landlord_id', userId)
@@ -104,7 +139,7 @@ export async function getMyListings(userId: string) {
 }
 
 export async function approveListing(id: string) {
-  const { data, error } = await getClient()
+  const { data, error } = await getSupabaseClient()
     .from('listings')
     .update({ status: 'approved', rejection_reason: null })
     .eq('id', id)
@@ -114,7 +149,7 @@ export async function approveListing(id: string) {
 }
 
 export async function rejectListing(id: string, reason: string) {
-  const { data, error } = await getClient()
+  const { data, error } = await getSupabaseClient()
     .from('listings')
     .update({ status: 'rejected', rejection_reason: reason })
     .eq('id', id)
@@ -124,7 +159,7 @@ export async function rejectListing(id: string, reason: string) {
 }
 
 export async function getAllListings() {
-  const { data, error } = await getClient()
+  const { data, error } = await getSupabaseClient()
     .from('listings')
     .select('*, landlord:profiles(*)')
     .order('created_at', { ascending: false })
@@ -132,7 +167,7 @@ export async function getAllListings() {
 }
 
 export async function getPendingListings() {
-  const { data, error } = await getClient()
+  const { data, error } = await getSupabaseClient()
     .from('listings')
     .select('*, landlord:profiles(*)')
     .eq('status', 'pending')
@@ -141,7 +176,7 @@ export async function getPendingListings() {
 }
 
 export async function getAllProfiles() {
-  const { data, error } = await getClient()
+  const { data, error } = await getSupabaseClient()
     .from('profiles')
     .select('*')
     .order('created_at', { ascending: false })
@@ -149,7 +184,7 @@ export async function getAllProfiles() {
 }
 
 export async function updateProfileVerification(userId: string, isVerified: boolean) {
-  const { data, error } = await getClient()
+  const { data, error } = await getSupabaseClient()
     .from('profiles')
     .update({ is_verified: isVerified })
     .eq('id', userId)
@@ -158,12 +193,12 @@ export async function updateProfileVerification(userId: string, isVerified: bool
 }
 
 export async function getAdminStats() {
-  const { data, error } = await getClient().rpc('get_admin_stats')
+  const { data, error } = await getSupabaseClient().rpc('get_admin_stats')
   return { stats: data as any | null, error }
 }
 
 export async function signUp(email: string, password: string, phone?: string) {
-  const { data, error } = await getClient().auth.signUp({
+  const { data, error } = await getSupabaseClient().auth.signUp({
     email,
     password,
     options: {
@@ -174,7 +209,7 @@ export async function signUp(email: string, password: string, phone?: string) {
 }
 
 export async function signIn(email: string, password: string) {
-  const { data, error } = await getClient().auth.signInWithPassword({
+  const { data, error } = await getSupabaseClient().auth.signInWithPassword({
     email,
     password,
   })
@@ -182,22 +217,23 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signOut() {
-  const { error } = await getClient().auth.signOut()
+  const { error } = await getSupabaseClient().auth.signOut()
   return { error }
 }
 
 export async function uploadPhoto(file: File, path: string) {
+  const supabaseClient = getSupabaseClient()
   const fileExt = file.name.split('.').pop()
   const fileName = `${Math.random()}.${fileExt}`
   const filePath = `${path}/${fileName}`
 
-  const { error } = await getClient().storage
+  const { error } = await supabaseClient.storage
     .from('listing-photos')
     .upload(filePath, file)
 
   if (error) return { url: null, error }
 
-  const { data: { publicUrl } } = getClient().storage
+  const { data: { publicUrl } } = supabaseClient.storage
     .from('listing-photos')
     .getPublicUrl(filePath)
 

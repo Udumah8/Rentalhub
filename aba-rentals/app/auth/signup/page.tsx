@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { signUp } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -18,11 +18,6 @@ export default function SignupPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { createClient } = await import('@supabase/supabase-js')
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         router.push('/landlord/dashboard')
@@ -54,25 +49,32 @@ export default function SignupPage() {
       return
     }
 
-    const { error } = await signUp(email, password, phone)
+    try {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, phone },
+        },
+      })
 
-    if (error) {
-      setError(error.message || 'Failed to create account')
+      if (signUpError) {
+        setError(signUpError.message)
+        setLoading(false)
+        return
+      }
+
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.from('profiles').update({ full_name: fullName }).eq('id', user.id)
+        router.push('/landlord/dashboard')
+      } else {
+        setError('Please check your email to confirm your account, then sign in.')
+        setLoading(false)
+      }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred. Please try again.')
       setLoading(false)
-      return
-    }
-
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      await supabase.from('profiles').update({ full_name: fullName }).eq('id', user.id)
-      router.push('/landlord/dashboard')
-    } else {
-      router.push('/auth/login?message=Check your email to confirm your account')
     }
   }
 
