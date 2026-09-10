@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { signIn, supabase } from '@/lib/supabase'
 
 function authMessage(message: string | undefined) {
@@ -16,14 +16,19 @@ function authMessage(message: string | undefined) {
 
 export default function LoginPage() {
   const router = useRouter()
-  const params = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(params.get('error') ? 'The confirmation link is invalid or expired.' : null)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => { supabase.auth.getUser().then(({ data }) => { if (data.user) router.replace('/landlord/dashboard') }) }, [router])
+  useEffect(() => {
+    const confirmationError = new URLSearchParams(window.location.search).get('error')
+    if (confirmationError) setError('The confirmation link is invalid or expired.')
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) router.replace('/landlord/dashboard')
+    })
+  }, [router])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(null)
