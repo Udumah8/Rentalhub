@@ -154,3 +154,19 @@ export async function rejectListingServer(id: string, reason: string) {
   if (!data) return { listing: null, error: { message: 'Listing not found' } }
   return { listing: data as any, error: null }
 }
+
+export async function deleteLandlordServer(userId: string) {
+  const supabase = createAdminClient()
+  const { error: listingsError } = await supabase
+    .from('listings')
+    .delete()
+    .eq('landlord_id', userId)
+  if (listingsError) {
+    return { error: listingsError }
+  }
+  const { error } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('id', userId)
+  return { error }
+}

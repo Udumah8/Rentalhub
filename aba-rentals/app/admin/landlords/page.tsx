@@ -13,6 +13,7 @@ export default function AdminLandlordsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [updating, setUpdating] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -71,6 +72,24 @@ export default function AdminLandlordsPage() {
       alert('Failed to update: ' + (data.error || 'Unknown error'))
     }
     setUpdating(null)
+  }
+
+  const handleDeleteLandlord = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this landlord? This action cannot be undone and will remove all their listings.')) {
+      return
+    }
+    setDeleting(userId)
+    const res = await fetch(`/api/admin/profiles/${userId}`, {
+      method: 'DELETE',
+    })
+    if (res.ok) {
+      setProfiles(prev => prev.filter(p => p.id !== userId))
+      setListings(prev => prev.filter(l => l.landlord_id !== userId))
+    } else {
+      const data = await res.json()
+      alert('Failed to delete: ' + (data.error || 'Unknown error'))
+    }
+    setDeleting(null)
   }
 
   const getListingCount = (userId: string) => {
@@ -161,17 +180,26 @@ export default function AdminLandlordsPage() {
                         {new Date(profile.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleToggleVerification(profile.id, profile.is_verified)}
-                          disabled={updating === profile.id}
-                          className={`text-sm font-medium ${
-                            profile.is_verified
-                              ? 'text-red-600 hover:text-red-700'
-                              : 'text-green-600 hover:text-green-700'
-                          }`}
-                        >
-                          {updating === profile.id ? 'Updating...' : profile.is_verified ? 'Revoke' : 'Verify'}
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => handleToggleVerification(profile.id, profile.is_verified)}
+                            disabled={updating === profile.id || deleting === profile.id}
+                            className={`text-sm font-medium ${
+                              profile.is_verified
+                                ? 'text-red-600 hover:text-red-700'
+                                : 'text-green-600 hover:text-green-700'
+                            }`}
+                          >
+                            {updating === profile.id ? 'Updating...' : profile.is_verified ? 'Revoke' : 'Verify'}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteLandlord(profile.id)}
+                            disabled={updating === profile.id || deleting === profile.id}
+                            className="text-sm font-medium text-red-600 hover:text-red-700"
+                          >
+                            {deleting === profile.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
