@@ -105,16 +105,19 @@ export default function EditListingPage({ params }: PageProps) {
     setError(null)
 
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const result = await uploadMedia(file)
-        if (result.error) {
-          throw new Error(result.error.message || 'Upload failed')
-        }
-        return result.url
-      })
+      const results = await Promise.all(
+        Array.from(files).map(async (file) => {
+          const result = await uploadMedia(file)
+          return result
+        })
+      )
 
-      const urls = await Promise.all(uploadPromises)
-      const validUrls = urls.filter((url): url is string => url !== null)
+      const validUrls = results.filter((r): r is { url: string; error: null } => r.url !== null && r.error === null).map(r => r.url)
+      const failed = results.filter(r => r.error)
+
+      if (failed.length > 0) {
+        setError(`Failed to upload ${failed.length} file(s): ${failed[0].error?.message || 'Unknown error'}`)
+      }
 
       if (type === 'photos') {
         setExistingPhotos(prev => [...prev, ...validUrls])

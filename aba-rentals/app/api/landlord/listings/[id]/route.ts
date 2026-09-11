@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerUser, getServerListing, isAdmin } from '@/lib/supabase-server'
-import { updateListing, deleteListing } from '@/lib/supabase'
+import { getServerUser, getServerListing, isAdmin, updateListingServer, deleteListingServer } from '@/lib/supabase-server'
 
 export async function PATCH(
   request: Request,
@@ -23,7 +22,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const result = await updateListing(resolvedParams.id, body, user.id)
+    const result = await updateListingServer(resolvedParams.id, body, user.id)
 
     if (result.error) {
       return NextResponse.json({ error: result.error.message }, { status: 500 })
@@ -52,7 +51,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const result = await deleteListing(resolvedParams.id, user.id)
+    const result = await deleteListingServer(resolvedParams.id, user.id)
 
     if (result.error) {
       return NextResponse.json({ error: result.error.message }, { status: 500 })

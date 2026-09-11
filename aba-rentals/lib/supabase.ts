@@ -40,9 +40,9 @@ export async function uploadMedia(file: File) {
   const isVideo = file.type.startsWith('video/')
   const folder = isVideo ? 'videos' : 'images'
 
-  const fileName = file.name.replace(/\s+/g, '-')
-  const ext = fileName.includes('.') ? fileName.split('.').pop() : (isVideo ? 'mp4' : 'jpg')
-  const baseName = fileName.includes('.') ? fileName.slice(0, fileName.lastIndexOf('.')) : fileName
+  const safeName = file.name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_.-]/g, '')
+  const ext = safeName.includes('.') ? (safeName.split('.').pop() || (isVideo ? 'mp4' : 'jpg')) : (isVideo ? 'mp4' : 'jpg')
+  const baseName = safeName.includes('.') ? safeName.slice(0, safeName.lastIndexOf('.')) : safeName
   const filePath = `${folder}/${baseName}-${Date.now()}.${ext}`
 
   const { error } = await client.storage.from('listing-photos').upload(filePath, file, {

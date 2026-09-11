@@ -119,6 +119,28 @@ export async function getMyListings(userId: string) {
   return { listings: data as any[] | null, error }
 }
 
+export async function updateListingServer(id: string, input: any, userId: string) {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from('listings')
+    .update(input)
+    .eq('id', id)
+    .eq('landlord_id', userId)
+    .select('*, landlord:profiles(*)')
+    .single()
+  return { listing: data as any | null, error }
+}
+
+export async function deleteListingServer(id: string, userId: string) {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('listings')
+    .delete()
+    .eq('id', id)
+    .eq('landlord_id', userId)
+  return { error }
+}
+
 export async function updateProfileVerification(userId: string, isVerified: boolean) {
   const supabase = createAdminClient()
   const { data, error } = await supabase
