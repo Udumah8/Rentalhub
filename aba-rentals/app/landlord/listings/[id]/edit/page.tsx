@@ -112,11 +112,12 @@ export default function EditListingPage({ params }: PageProps) {
         })
       )
 
-      const validUrls = results.filter((r): r is { url: string; error: null } => r.url !== null && r.error === null).map(r => r.url)
+      const validUrls = results.filter((r): r is { url: string; error: null } => !!r.url && !r.error).map(r => r.url)
       const failed = results.filter(r => r.error)
 
       if (failed.length > 0) {
-        setError(`Failed to upload ${failed.length} file(s): ${failed[0].error?.message || 'Unknown error'}`)
+        const msg = failed[0].error?.message || 'Unknown error'
+        setError(`Failed to upload ${failed.length} file(s): ${msg}`)
       }
 
       if (type === 'photos') {

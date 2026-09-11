@@ -40,18 +40,29 @@ export async function uploadMedia(file: File) {
   const isVideo = file.type.startsWith('video/')
   const folder = isVideo ? 'videos' : 'images'
 
-  const safeName = file.name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_.-]/g, '')
-  const ext = safeName.includes('.') ? (safeName.split('.').pop() || (isVideo ? 'mp4' : 'jpg')) : (isVideo ? 'mp4' : 'jpg')
-  const baseName = safeName.includes('.') ? safeName.slice(0, safeName.lastIndexOf('.')) : safeName
-  const filePath = `${folder}/${baseName}-${Date.now()}.${ext}`
+  const baseName = file.name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_.-]/g, '') || 'file'
+  const ext = baseName.includes('.') ? baseName.split('.').pop() : (isVideo ? 'mp4' : 'jpg')
+  const nameOnly = baseName.includes('.') ? baseName.slice(0, baseName.lastIndexOf('.')) : baseName
+  const filePath = `${folder}/${nameOnly}-${Date.now()}.${ext}`
 
-  const { error } = await client.storage.from('listing-photos').upload(filePath, file, {
-    cacheControl: '3600',
-    upsert: false,
-  })
-  if (error) return { url: null, error }
+  try {
+    const { error } = await client.storage.from('listing-photos').upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false,
+    })
+    if (error) {
+      return { url: null, error: { message: error.message || 'Upload failed' } }
+    }
 
-  return { url: client.storage.from('listing-photos').getPublicUrl(filePath).data.publicUrl, error: null }
+    const publicUrl = client.storage.from('listing-photos').getPublicUrl(filePath).data.publicUrl
+    if (!publicUrl) {
+      return { url: null, error: { message: 'Uploaded file public URL is missing' } }
+    }
+
+    return { url: publicUrl, error: null }
+  } catch (err: any) {
+    return { url: null, error: { message: err?.message || 'Upload failed' } }
+  }
 }
 
 export async function signUp(email: string, password: string, fullName?: string, phone?: string) { 
