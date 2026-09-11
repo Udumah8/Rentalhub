@@ -9,8 +9,8 @@ export default function ListingCard({ listing }: ListingCardProps) {
   const primaryPhoto = listing.photos?.[0] || '/placeholder.jpg'
   const hasVideo = listing.videos && listing.videos.length > 0
   return (
-    <Link href={`/listing/${listing.id}`} className="card group flex overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lg">
-      <div className="relative h-52 w-full shrink-0 bg-muted sm:h-auto sm:min-h-56">
+    <Link href={`/listing/${listing.id}`} className="listing-card card group flex overflow-hidden transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
+      <div className="listing-media relative h-52 w-full shrink-0 bg-muted sm:h-auto sm:min-h-56">
         <Image src={primaryPhoto} alt={listing.title} fill className="object-cover transition duration-500 group-hover:scale-105" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
         {hasVideo && <span className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">▶ Video</span>}
         {listing.landlord?.is_verified && <span className="badge badge-success absolute left-3 top-3">Verified</span>}
