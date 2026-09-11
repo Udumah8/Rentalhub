@@ -35,9 +35,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b border-border/80 bg-card/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="text-xl font-bold tracking-tight text-primary sm:text-2xl">Aba<span className="text-foreground">Rentals</span></Link>
+      <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="brand-mark text-xl font-black tracking-[-0.06em] text-foreground sm:text-2xl">Aba<span className="text-primary">Rentals</span></Link>
           <nav className="flex items-center gap-2 sm:gap-5">
             <Link href="/auth/login" className="px-2 py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground">Sign in</Link>
             <Link href="/auth/signup" className="btn-primary px-3 sm:px-4">List a property</Link>
@@ -45,15 +45,17 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="relative overflow-hidden bg-foreground px-4 py-14 text-primary-foreground sm:py-20">
-        <div className="mx-auto max-w-7xl">
-          <div className="max-w-2xl">
-            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-accent">A better way to rent in Aba</p>
-            <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-6xl">Find a place that feels like home.</h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-primary-foreground/70 sm:text-lg">Browse quality homes, flats, and commercial spaces from trusted local landlords.</p>
+      <section className="hero-stage relative overflow-hidden px-4 py-16 text-primary-foreground sm:py-24">
+        <div className="hero-grid" aria-hidden="true" />
+        <div className="mx-auto flex max-w-7xl flex-col gap-12 lg:flex-row lg:items-end lg:justify-between">
+          <div className="relative max-w-3xl">
+            <p className="eyebrow mb-5 text-sm font-bold uppercase tracking-[0.24em] text-accent">A better way to rent in Aba</p>
+            <h1 className="hero-title text-balance text-5xl font-black leading-[0.98] tracking-[-0.06em] sm:text-7xl lg:text-8xl">Find a place that feels like home.</h1>
+            <p className="mt-7 max-w-xl text-base leading-7 text-primary-foreground/70 sm:text-lg">Browse quality homes, flats, and commercial spaces from trusted local landlords.</p>
           </div>
-          <div className="mt-8 flex flex-wrap gap-3 text-sm font-medium text-primary-foreground/70"><span>Local listings</span><span>•</span><span>Clear pricing</span><span>•</span><span>Built for Aba</span></div>
+          <div className="hero-orbit relative hidden size-52 shrink-0 items-center justify-center rounded-full border border-primary-foreground/20 lg:flex" aria-hidden="true"><div className="hero-orbit-inner size-32 rounded-full border border-accent/60" /><span className="absolute bottom-8 right-0 size-3 rounded-full bg-accent shadow-[0_0_24px_hsl(var(--accent))]" /></div>
         </div>
+        <div className="relative mx-auto mt-12 flex max-w-7xl flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-primary-foreground/60"><span>Local listings</span><span className="text-accent">/</span><span>Clear pricing</span><span className="text-accent">/</span><span>Built for Aba</span></div>
       </section>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
