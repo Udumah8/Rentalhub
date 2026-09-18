@@ -62,7 +62,7 @@ export default function AdminStatsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-6">
-              <Link href="/" className="text-2xl font-bold text-blue-600">Aba Rentals</Link>
+              <Link href="/" className="text-2xl font-bold text-blue-600">Rentalhub</Link>
               <span className="text-gray-400">/</span>
               <span className="text-gray-700 font-medium">Stats</span>
             </div>
