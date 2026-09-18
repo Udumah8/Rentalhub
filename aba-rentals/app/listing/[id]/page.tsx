@@ -46,7 +46,7 @@ export default function ListingDetailPage({ params }: PageProps) {
   }
 
   const whatsappMessage = encodeURIComponent(
-    `Hi, I'm interested in your property "${listing?.title}" listed on Aba Rentals. Is it still available?`
+    `Hi, I'm interested in your property "${listing?.title}" listed on Rentalhub. Is it still available?`
   )
   const whatsappUrl = `https://wa.me/${listing?.contact_whatsapp?.replace(/[^0-9]/g, '')}?text=${whatsappMessage}`
 
@@ -62,7 +62,7 @@ export default function ListingDetailPage({ params }: PageProps) {
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center">
-            <Link href="/" className="text-2xl font-bold text-blue-600">Aba Rentals</Link>
+            <Link href="/" className="text-2xl font-bold text-blue-600">Rentalhub</Link>
           </div>
         </header>
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -81,7 +81,7 @@ export default function ListingDetailPage({ params }: PageProps) {
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center">
-            <Link href="/" className="text-2xl font-bold text-blue-600">Aba Rentals</Link>
+            <Link href="/" className="text-2xl font-bold text-blue-600">Rentalhub</Link>
           </div>
         </header>
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
@@ -97,7 +97,7 @@ export default function ListingDetailPage({ params }: PageProps) {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-blue-600">Aba Rentals</Link>
+          <Link href="/" className="text-2xl font-bold text-blue-600">Rentalhub</Link>
           <Link href="/" className="text-gray-600 hover:text-gray-900">Back to listings</Link>
         </div>
       </header>
