@@ -1,4 +1,4 @@
--- Aba Rentals Marketplace Schema
+-- Rentalhub Marketplace Schema
 -- Run this in Supabase SQL Editor after creating your project
 
 -- Enable UUID extension

@@ -1,4 +1,4 @@
-# Aba Rentals — MVP
+# Rentalhub — MVP
 
 A mobile-first rental listings marketplace for long-term housing in Aba, Nigeria. Landlords list properties, renters browse and contact landlords directly via WhatsApp. Admin approves listings before they go public.
 

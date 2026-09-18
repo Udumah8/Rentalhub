@@ -178,7 +178,7 @@ export default function NewListingPage() {
                 onChange={handleChange}
                 required
                 className="input"
-                placeholder="e.g., 2 Bedroom Flat in Aba Town"
+                placeholder="e.g., 2 Bedroom Flat in Ikeja"
               />
             </div>
 
@@ -235,7 +235,7 @@ export default function NewListingPage() {
                 onChange={handleChange}
                 required
                 className="input"
-                placeholder="e.g., Aba Town, Ochie, Ariaria"
+                placeholder="e.g., Ikeja, Lekki, GRA"
               />
             </div>
 
