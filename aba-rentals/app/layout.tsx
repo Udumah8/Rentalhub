@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'AbaRentals — Find your next place in Aba',
-  description: 'A premium local rental marketplace for finding trusted homes, flats, and commercial spaces in Aba, Nigeria.',
+  title: 'Rentalhub — Find your next place in Nigeria',
+  description: 'A trusted rental marketplace for finding homes, flats, shops, and commercial spaces across all 36 Nigerian states and the FCT.',
   themeColor: '#0f766e',
 }
 
