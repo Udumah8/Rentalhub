@@ -23,7 +23,7 @@ export default function ShopPage() {
         <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">Shop useful products and services that make renting, moving, and managing your place across Nigeria easier.</p>
       </section>
       <section className="mx-auto grid max-w-7xl gap-5 px-4 pb-20 sm:grid-cols-3 sm:px-6 lg:px-8">
-        {shopCategories.map(category => <article key={category.title} className="card overflow-hidden transition duration-300 hover:-translate-y-2 hover:shadow-2xl"><img src={category.image} alt="" className="h-56 w-full object-cover" /><div className="p-6"><h2 className="text-xl font-bold">{category.title}</h2><p className="mt-2 leading-7 text-muted-foreground">{category.description}</p><button className="btn-secondary mt-6" type="button">Notify me</button></div></article>)}
+        {shopCategories.map(category => <article key={category.title} className="card overflow-hidden transition duration-300 hover:-translate-y-2 hover:shadow-2xl"><img src={category.image} alt={`${category.title} for Rentalhub renters`} className="h-56 w-full object-cover" /><div className="p-6"><h2 className="text-xl font-bold">{category.title}</h2><p className="mt-2 leading-7 text-muted-foreground">{category.description}</p><a className="btn-secondary mt-6" href="mailto:hello@rentalhub.ng?subject=Rentalhub shop interest">Notify me</a></div></article>)}
       </section>
     </main>
   )
