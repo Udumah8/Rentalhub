@@ -39,7 +39,7 @@ export default function Home() {
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="brand-mark text-xl font-black tracking-[-0.06em] text-foreground sm:text-2xl">Rental<span className="text-primary">hub</span></Link>
           <nav className="flex items-center gap-2 sm:gap-5">
-            <Link href="/shop" className="hidden px-2 py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground sm:block">Shop</Link>
+            <Link href="/shop" className="px-2 py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground">Shop</Link>
             <Link href="/auth/login" className="px-2 py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground">Sign in</Link>
             <Link href="/auth/signup" className="btn-primary px-3 sm:px-4">List a property</Link>
           </nav>
@@ -52,14 +52,14 @@ export default function Home() {
           <div className="relative max-w-3xl">
             <p className="eyebrow mb-5 text-sm font-bold uppercase tracking-[0.24em] text-accent">Nigeria&apos;s smarter rental marketplace</p>
             <h1 className="hero-title text-balance text-5xl font-black leading-[0.98] tracking-[-0.06em] sm:text-7xl lg:text-8xl">Find a place that feels like home.</h1>
-            <p className="mt-7 max-w-xl text-base leading-7 text-primary-foreground/70 sm:text-lg">Browse quality homes, flats, shops, and commercial spaces from trusted landlords in every corner of Nigeria.</p>
+            <p className="mt-7 max-w-xl text-base leading-7 text-primary-foreground/70 sm:text-lg">Browse quality homes, flats, shops, and commercial spaces from trusted landlords in every corner of Nigeria.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><a href="#listings" className="btn-primary bg-accent text-accent-foreground shadow-none hover:brightness-100">Explore listings</a><Link href="/shop" className="btn-outline border-primary-foreground/20 bg-transparent text-primary-foreground hover:bg-primary-foreground/10">Shop home essentials</Link></div>
           </div>
           <div className="hero-orbit relative hidden size-52 shrink-0 items-center justify-center rounded-full border border-primary-foreground/20 lg:flex" aria-hidden="true"><div className="hero-orbit-inner size-32 rounded-full border border-accent/60" /><span className="absolute bottom-8 right-0 size-3 rounded-full bg-accent shadow-[0_0_24px_hsl(var(--accent))]" /></div>
         </div>
         <div className="relative mx-auto mt-12 flex max-w-7xl flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-primary-foreground/60"><span>Local listings</span><span className="text-accent">/</span><span>Clear pricing</span><span className="text-accent">/</span><span>Across all 36 states + FCT</span></div>
       </section>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+      <main id="listings" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <FilterBar onFilterChange={handleFilterChange} />
         <div className="mb-5 flex items-end justify-between gap-4"><div><p className="text-sm font-medium text-muted-foreground">Explore available spaces</p><h2 className="mt-1 text-2xl font-bold tracking-tight">Latest listings</h2></div>{totalCount > 0 && <p className="text-sm text-muted-foreground">{totalCount} homes</p>}</div>
         {error && <div role="alert" className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
