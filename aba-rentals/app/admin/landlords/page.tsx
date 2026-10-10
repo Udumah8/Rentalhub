@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Profile } from '@/lib/types'
 import { getSupabaseClient } from '@/lib/supabase'
-import Image from 'next/image'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function AdminLandlordsPage() {
   const [profiles, setProfiles] = useState<Profile[]>([])
@@ -97,118 +97,239 @@ export default function AdminLandlordsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-6">
-              <Link href="/" className="text-2xl font-bold text-blue-600">Rentalhub</Link>
-              <span className="text-gray-400">/</span>
-              <span className="text-gray-700 font-medium">Landlords</span>
-            </div>
-            <nav className="flex gap-4">
-              <Link href="/admin" className="text-gray-600 hover:text-gray-900 text-sm">Pending</Link>
-              <Link href="/admin/stats" className="text-gray-600 hover:text-gray-900 text-sm">Stats</Link>
-            </nav>
-          </div>
+    <motion.div
+      className="min-h-screen bg-background"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      <motion.header
+        className="border-b border-border bg-background/80 backdrop-blur-xl"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+      >
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="flex items-center gap-6"
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Link href="/" className="text-2xl font-black tracking-[-0.06em] text-foreground">Rental<span className="text-primary">hub</span></Link>
+            <span className="text-muted-foreground">/</span>
+            <span className="text-foreground font-medium">Landlords</span>
+          </motion.div>
+          <motion.nav
+            className="flex gap-4"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <motion.a
+              href="/admin"
+              className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+              whileHover={{ scale: 1.05 }}
+            >
+              Pending
+            </motion.a>
+            <motion.a
+              href="/admin/stats"
+              className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+              whileHover={{ scale: 1.05 }}
+            >
+              Stats
+            </motion.a>
+          </motion.nav>
         </div>
-      </header>
+      </motion.header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">All Landlords</h1>
-        <p className="text-gray-500 mb-6">{profiles.length} registered landlords</p>
+      <motion.main
+        className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2, type: 'spring', stiffness: 100, damping: 15 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <motion.h1
+            className="text-2xl font-bold text-foreground mb-2"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            All Landlords
+          </motion.h1>
+          <motion.p
+            className="text-muted-foreground mb-6"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            {profiles.length} registered landlords
+          </motion.p>
+        </motion.div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {error && (
+            <motion.div
+              className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {loading ? (
-          <div className="space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="card p-4 animate-pulse">
-                <div className="flex items-center gap-4">
-                  <div className="bg-gray-200 h-12 w-12 rounded-full" />
-                  <div className="flex-1">
-                    <div className="bg-gray-200 h-5 rounded w-1/3 mb-2" />
-                    <div className="bg-gray-200 h-4 rounded w-1/2" />
+        <AnimatePresence mode="popLayout">
+          {loading ? (
+            <motion.div
+              key="loading"
+              className="space-y-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {Array.from({ length: 5 }).map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="card shimmer-wrapper p-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: i * 0.1 }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-full bg-muted" />
+                    <div className="flex-1 space-y-2">
+                      <div className="shimmer-wrapper h-5 w-1/3 rounded" />
+                      <div className="shimmer-wrapper h-4 w-1/2 rounded" />
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Landlord</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Listings</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Joined</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {profiles.map((profile) => (
-                    <tr key={profile.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {profile.full_name || 'N/A'}
-                          </div>
-                          <div className="text-sm text-gray-500">{profile.email}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{profile.phone || 'N/A'}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {getListingCount(profile.id)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {profile.is_verified ? (
-                          <span className="badge badge-success">Verified</span>
-                        ) : (
-                          <span className="badge badge-warning">Unverified</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(profile.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => handleToggleVerification(profile.id, profile.is_verified)}
-                            disabled={updating === profile.id || deleting === profile.id}
-                            className={`text-sm font-medium ${
-                              profile.is_verified
-                                ? 'text-red-600 hover:text-red-700'
-                                : 'text-green-600 hover:text-green-700'
-                            }`}
-                          >
-                            {updating === profile.id ? 'Updating...' : profile.is_verified ? 'Revoke' : 'Verify'}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteLandlord(profile.id)}
-                            disabled={updating === profile.id || deleting === profile.id}
-                            className="text-sm font-medium text-red-600 hover:text-red-700"
-                          >
-                            {deleting === profile.id ? 'Deleting...' : 'Delete'}
-                          </button>
-                        </div>
-                      </td>
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="landlords"
+              className="card overflow-hidden"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Landlord</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Contact</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Listings</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Joined</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    <AnimatePresence>
+                      {profiles.map((profile) => (
+                        <motion.tr
+                          key={profile.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 20 }}
+                          transition={{ duration: 0.2 }}
+                          whileHover={{ backgroundColor: 'hsl(var(--muted))' }}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                            >
+                              <div className="text-sm font-medium text-foreground">
+                                {profile.full_name || 'N/A'}
+                              </div>
+                              <div className="text-sm text-muted-foreground">{profile.email}</div>
+                            </motion.div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <motion.div
+                              className="text-sm text-foreground"
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                            >
+                              {profile.phone || 'N/A'}
+                            </motion.div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                            <motion.span
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            >
+                              {getListingCount(profile.id)}
+                            </motion.span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <motion.span
+                              className={`badge ${profile.is_verified ? 'badge-success' : 'badge-warning'}`}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            >
+                              {profile.is_verified ? 'Verified' : 'Unverified'}
+                            </motion.span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                            <motion.span
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                            >
+                              {new Date(profile.created_at).toLocaleDateString()}
+                            </motion.span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <motion.div
+                              className="flex items-center gap-3"
+                              initial={{ opacity: 0, x: 20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                            >
+                              <motion.button
+                                onClick={() => handleToggleVerification(profile.id, profile.is_verified)}
+                                disabled={updating === profile.id || deleting === profile.id}
+                                className={`text-sm font-medium transition-colors ${
+                                  profile.is_verified
+                                    ? 'text-red-600 hover:text-red-700'
+                                    : 'text-green-600 hover:text-green-700'
+                                }`}
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                {updating === profile.id ? 'Updating...' : profile.is_verified ? 'Revoke' : 'Verify'}
+                              </motion.button>
+                              <motion.button
+                                onClick={() => handleDeleteLandlord(profile.id)}
+                                disabled={updating === profile.id || deleting === profile.id}
+                                className="text-sm font-medium text-red-600 hover:text-red-700"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                {deleting === profile.id ? 'Deleting...' : 'Delete'}
+                              </motion.button>
+                            </motion.div>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.main>
+    </motion.div>
   )
 }
